@@ -52,10 +52,11 @@ const userSchema = Schema(
     phone: {
       type: String,
       unique: true,
+      sparse: true,  // Allow multiple null/empty values
       trim: true,
       validate(value) {
-        if (!validator.isMobilePhone(value)) {
-          throw new Error('Phone is invalid');
+        if (value && value.length > 0 && !validator.isMobilePhone(value, 'any', { strictMode: false })) {
+          throw new Error('Phone is invalid. Use format: +84xxxxxxxxx or 0xxxxxxxxx');
         }
       },
     },

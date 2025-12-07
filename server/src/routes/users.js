@@ -15,7 +15,27 @@ router.post('/users', async (req, res) => {
     const token = await user.generateAuthToken();
     res.status(201).send({ user, token });
   } catch (e) {
-    res.status(400).send(e);
+    console.log('Registration error:', e);
+    // Handle duplicate key errors
+    if (e.code === 11000) {
+      const field = Object.keys(e.keyPattern)[0];
+      return res.status(400).send({
+        _message: 'Validation failed',
+        message: `${field} already exists. Please use a different ${field}.`
+      });
+    }
+    // Handle validation errors
+    if (e.name === 'ValidationError') {
+      const messages = Object.values(e.errors).map(err => err.message);
+      return res.status(400).send({
+        _message: 'Validation failed',
+        message: messages.join(', ')
+      });
+    }
+    res.status(400).send({
+      _message: 'Registration failed',
+      message: e.message || 'Something went wrong'
+    });
   }
 });
 
@@ -43,6 +63,7 @@ router.post('/users/photo/:id', upload('users').single('file'), async (req, res,
 // Login User
 router.post('/users/login', async (req, res) => {
   try {
+    throw new Error('Database connection failed');
     const user = await User.findByCredentials(req.body.username, req.body.password);
     const token = await user.generateAuthToken();
     res.send({ user, token });
