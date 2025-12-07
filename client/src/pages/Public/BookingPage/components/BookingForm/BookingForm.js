@@ -19,11 +19,27 @@ export default function BookingForm(props) {
     onChangeTime
   } = props;
 
-  const showtime = showtimes.find(
+  // Find all showtimes for the selected cinema
+  const cinemaShowtimes = showtimes.filter(
     showtime => showtime.cinemaId === selectedCinema
   );
 
-  if (!cinemas.length)
+  // Get the date range from all showtimes for this cinema
+  const getDateRange = () => {
+    if (!cinemaShowtimes.length) return { minDate: new Date(), maxDate: new Date() };
+    
+    const startDates = cinemaShowtimes.map(s => new Date(s.startDate));
+    const endDates = cinemaShowtimes.map(s => new Date(s.endDate));
+    
+    return {
+      minDate: new Date(Math.min(...startDates)),
+      maxDate: new Date(Math.max(...endDates))
+    };
+  };
+
+  const { minDate, maxDate } = getDateRange();
+
+  if (!cinemas || !cinemas.length)
     return (
       <Box
         display="flex"
@@ -54,7 +70,7 @@ export default function BookingForm(props) {
           ))}
         </TextField>
       </Grid>
-      {showtime && (
+      {selectedCinema && cinemaShowtimes.length > 0 && (
         <Grid item xs>
           <MuiPickersUtilsProvider utils={MomentUtils}>
             <KeyboardDatePicker
@@ -63,8 +79,8 @@ export default function BookingForm(props) {
               fullWidth
               id="start-date"
               label="Start Date"
-              minDate={new Date(showtime.startDate)}
-              maxDate={new Date(showtime.endDate)}
+              minDate={minDate}
+              maxDate={maxDate}
               value={selectedDate}
               onChange={date => onChangeDate(date._d)}
               KeyboardButtonProps={{
@@ -74,7 +90,7 @@ export default function BookingForm(props) {
           </MuiPickersUtilsProvider>
         </Grid>
       )}
-      {selectedDate && (
+      {selectedDate && times && times.length > 0 && (
         <Grid item xs>
           <TextField
             fullWidth

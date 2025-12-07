@@ -160,7 +160,14 @@ class BookingPage extends Component {
   onFilterCinema() {
     const { cinemas, showtimes, selectedCinema, selectedTime } = this.props;
     const initialReturn = { uniqueCinemas: [], uniqueTimes: [] };
-    if (!showtimes || !cinemas) return initialReturn;
+    
+    // Handle null/undefined/empty array cases
+    if (!showtimes || !Array.isArray(showtimes) || showtimes.length === 0) {
+      return initialReturn;
+    }
+    if (!cinemas || !Array.isArray(cinemas) || cinemas.length === 0) {
+      return initialReturn;
+    }
 
     const uniqueCinemasId = showtimes
       .filter(showtime =>
